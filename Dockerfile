@@ -49,9 +49,14 @@ RUN SKIP_LOCALE_DOWNLOAD=true mix release --path /opt/built
 
 FROM debian:trixie-slim AS app
 
+ARG BUILD_ID=unknown
+ARG BUILD_DATE=unknown
+
 ENV LANG=C.UTF-8 \
     SRTM_CACHE=/opt/app/.srtm_cache \
-    HOME=/opt/app
+    HOME=/opt/app \
+    TESLAMATE_BUILD_ID=$BUILD_ID \
+    TESLAMATE_BUILD_DATE=$BUILD_DATE
 
 WORKDIR $HOME
 

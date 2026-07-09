@@ -15,7 +15,8 @@ defmodule TeslaMateWeb.SignInLive.Index do
       task: nil,
       changeset: Auth.change_tokens(),
       token: System.get_env("TOKEN", ""),
-      provider: System.get_env("TESLA_AUTH_HOST", "https://auth.tesla.com")
+      provider: System.get_env("TESLA_AUTH_HOST", "https://auth.tesla.com"),
+      build_info: build_info()
     }
 
     {:ok, assign(socket, assigns)}
@@ -82,5 +83,13 @@ defmodule TeslaMateWeb.SignInLive.Index do
     socket
     |> put_flash(:success, gettext("Signed in successfully"))
     |> redirect(to: Routes.car_path(socket, :index))
+  end
+
+  defp build_info do
+    %{
+      id: System.get_env("TESLAMATE_BUILD_ID", "unknown"),
+      date: System.get_env("TESLAMATE_BUILD_DATE", "unknown"),
+      version: Application.spec(:teslamate, :vsn) || "unknown"
+    }
   end
 end

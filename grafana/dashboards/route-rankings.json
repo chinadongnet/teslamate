@@ -1,0 +1,612 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [
+    {
+      "icon": "dashboard",
+      "tags": [],
+      "title": "TeslaMate",
+      "tooltip": "",
+      "type": "link",
+      "url": "${base_url:raw}"
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "tags": [
+        "tesla"
+      ],
+      "title": "Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Top 10 routes in the selected time range. Start and destination points are grouped by latitude/longitude buckets. The default bucket size is 0.01 degree, which is roughly 1 km.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false,
+            "minWidth": 120
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "route_rank"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rank"
+              },
+              {
+                "id": "custom.width",
+                "value": 70
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "drive_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Drives"
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "start_location"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Start"
+              },
+              {
+                "id": "custom.minWidth",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "end_location"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Destination"
+              },
+              {
+                "id": "custom.minWidth",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg_distance_km"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Avg distance"
+              },
+              {
+                "id": "unit",
+                "value": "lengthkm"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg_distance_mi"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Avg distance"
+              },
+              {
+                "id": "unit",
+                "value": "lengthmi"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fastest_time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fastest time"
+              },
+              {
+                "id": "unit",
+                "value": "dateTimeAsLocal"
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "View fastest drive",
+                    "url": "/d/zm7wN6Zgz/drive-details?from=${__data.fields.fastest_start_ts.numeric}&to=${__data.fields.fastest_end_ts.numeric}&var-car_id=${__data.fields.car_id.numeric}&var-drive_id=${__data.fields.fastest_drive_id.numeric}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.minWidth",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "slowest_time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Slowest time"
+              },
+              {
+                "id": "unit",
+                "value": "dateTimeAsLocal"
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "View slowest drive",
+                    "url": "/d/zm7wN6Zgz/drive-details?from=${__data.fields.slowest_start_ts.numeric}&to=${__data.fields.slowest_end_ts.numeric}&var-car_id=${__data.fields.car_id.numeric}&var-drive_id=${__data.fields.slowest_drive_id.numeric}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.minWidth",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*duration_min$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "m"
+              },
+              {
+                "id": "displayNameFromDS"
+              },
+              {
+                "id": "custom.width",
+                "value": 105
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fastest_duration_min"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fastest duration"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "slowest_duration_min"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Slowest duration"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*_speed_.*_km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "velocitykmh"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "custom.width",
+                "value": 115
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*_speed_.*_mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "velocitymph"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "custom.width",
+                "value": 115
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fastest_speed_max_km"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fastest max speed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fastest_speed_max_mi"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fastest max speed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fastest_avg_speed_km"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fastest avg speed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fastest_avg_speed_mi"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fastest avg speed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "slowest_speed_max_km"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Slowest max speed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "slowest_speed_max_mi"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Slowest max speed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "slowest_avg_speed_km"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Slowest avg speed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "slowest_avg_speed_mi"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Slowest avg speed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*(_drive_id|_start_ts|_end_ts)$|car_id/"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom.viz",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 21,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "enablePagination": false,
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Rank"
+          }
+        ]
+      },
+      "pluginVersion": "13.0.1+security-01",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_points AS (\n  SELECT\n    d.id AS drive_id,\n    d.car_id,\n    d.start_date,\n    d.end_date,\n    floor(extract(epoch FROM d.start_date)) * 1000 AS start_date_ts,\n    ceil(extract(epoch FROM d.end_date)) * 1000 AS end_date_ts,\n    d.duration_min,\n    d.distance,\n    d.speed_max,\n    d.distance / NULLIF(d.duration_min::numeric / 60, 0) AS avg_speed,\n    floor(sp.latitude::numeric / NULLIF('$route_bucket_degrees'::numeric, 0)) * '$route_bucket_degrees'::numeric AS start_lat_bucket,\n    floor(sp.longitude::numeric / NULLIF('$route_bucket_degrees'::numeric, 0)) * '$route_bucket_degrees'::numeric AS start_lon_bucket,\n    floor(ep.latitude::numeric / NULLIF('$route_bucket_degrees'::numeric, 0)) * '$route_bucket_degrees'::numeric AS end_lat_bucket,\n    floor(ep.longitude::numeric / NULLIF('$route_bucket_degrees'::numeric, 0)) * '$route_bucket_degrees'::numeric AS end_lon_bucket,\n    COALESCE(\n      sg.name,\n      CONCAT_WS(', ', COALESCE(sa.name, nullif(CONCAT_WS(' ', sa.road, sa.house_number), '')), sa.city),\n      CONCAT(round(sp.latitude::numeric, 5), ', ', round(sp.longitude::numeric, 5))\n    ) AS start_location,\n    COALESCE(\n      eg.name,\n      CONCAT_WS(', ', COALESCE(ea.name, nullif(CONCAT_WS(' ', ea.road, ea.house_number), '')), ea.city),\n      CONCAT(round(ep.latitude::numeric, 5), ', ', round(ep.longitude::numeric, 5))\n    ) AS end_location\n  FROM drives d\n  JOIN positions sp ON sp.id = d.start_position_id\n  JOIN positions ep ON ep.id = d.end_position_id\n  LEFT JOIN addresses sa ON sa.id = d.start_address_id\n  LEFT JOIN addresses ea ON ea.id = d.end_address_id\n  LEFT JOIN geofences sg ON sg.id = d.start_geofence_id\n  LEFT JOIN geofences eg ON eg.id = d.end_geofence_id\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.duration_min > 0\n    AND convert_km(d.distance::numeric, '$length_unit') >= NULLIF('$min_distance', '')::numeric\n    AND sp.latitude IS NOT NULL\n    AND sp.longitude IS NOT NULL\n    AND ep.latitude IS NOT NULL\n    AND ep.longitude IS NOT NULL\n),\nranked_points AS (\n  SELECT\n    drive_points.*,\n    row_number() OVER (\n      PARTITION BY start_lat_bucket, start_lon_bucket, end_lat_bucket, end_lon_bucket\n      ORDER BY avg_speed DESC NULLS LAST, duration_min ASC, start_date DESC\n    ) AS fastest_rank,\n    row_number() OVER (\n      PARTITION BY start_lat_bucket, start_lon_bucket, end_lat_bucket, end_lon_bucket\n      ORDER BY avg_speed ASC NULLS LAST, duration_min DESC, start_date DESC\n    ) AS slowest_rank\n  FROM drive_points\n),\nroute_groups AS (\n  SELECT\n    start_lat_bucket,\n    start_lon_bucket,\n    end_lat_bucket,\n    end_lon_bucket,\n    count(*) AS drive_count,\n    mode() WITHIN GROUP (ORDER BY start_location) AS start_location,\n    mode() WITHIN GROUP (ORDER BY end_location) AS end_location,\n    avg(distance) AS avg_distance,\n    max(start_date) AS latest_drive_at\n  FROM drive_points\n  GROUP BY 1, 2, 3, 4\n),\ntop_routes AS (\n  SELECT\n    row_number() OVER (ORDER BY drive_count DESC, latest_drive_at DESC) AS route_rank,\n    *\n  FROM route_groups\n  ORDER BY drive_count DESC, latest_drive_at DESC\n  LIMIT 10\n),\nfastest AS (\n  SELECT * FROM ranked_points WHERE fastest_rank = 1\n),\nslowest AS (\n  SELECT * FROM ranked_points WHERE slowest_rank = 1\n)\nSELECT\n  tr.route_rank,\n  tr.drive_count,\n  tr.start_location,\n  tr.end_location,\n  round(convert_km(tr.avg_distance::numeric, '$length_unit'), 1) AS avg_distance_$length_unit,\n  f.car_id,\n  f.drive_id AS fastest_drive_id,\n  f.start_date_ts AS fastest_start_ts,\n  f.end_date_ts AS fastest_end_ts,\n  f.start_date AS fastest_time,\n  f.duration_min AS fastest_duration_min,\n  round(convert_km(f.speed_max::numeric, '$length_unit'), 1) AS fastest_speed_max_$length_unit,\n  round(convert_km(f.avg_speed::numeric, '$length_unit'), 1) AS fastest_avg_speed_$length_unit,\n  s.drive_id AS slowest_drive_id,\n  s.start_date_ts AS slowest_start_ts,\n  s.end_date_ts AS slowest_end_ts,\n  s.start_date AS slowest_time,\n  s.duration_min AS slowest_duration_min,\n  round(convert_km(s.speed_max::numeric, '$length_unit'), 1) AS slowest_speed_max_$length_unit,\n  round(convert_km(s.avg_speed::numeric, '$length_unit'), 1) AS slowest_avg_speed_$length_unit\nFROM top_routes tr\nJOIN fastest f USING (start_lat_bucket, start_lon_bucket, end_lat_bucket, end_lon_bucket)\nJOIN slowest s USING (start_lat_bucket, start_lon_bucket, end_lat_bucket, end_lon_bucket)\nORDER BY tr.route_rank;",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Top 10 route rankings",
+      "type": "table"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "tesla"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text\nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC;",
+        "includeAll": false,
+        "label": "Car",
+        "name": "car_id",
+        "options": [],
+        "query": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text\nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "select unit_of_length from settings limit 1;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "length unit",
+        "name": "length_unit",
+        "options": [],
+        "query": "select unit_of_length from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "select base_url from settings limit 1;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "base_url",
+        "options": [],
+        "query": "select base_url from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {
+          "text": "0.01",
+          "value": "0.01"
+        },
+        "description": "Latitude/longitude bucket size. 0.01 degree is roughly 1 km.",
+        "label": "Route bucket",
+        "name": "route_bucket_degrees",
+        "options": [
+          {
+            "selected": true,
+            "text": "0.01",
+            "value": "0.01"
+          }
+        ],
+        "query": "0.01",
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "text": "0",
+          "value": "0"
+        },
+        "description": "Minimum drive distance in the current length unit.",
+        "label": "Distance >=",
+        "name": "min_distance",
+        "options": [
+          {
+            "selected": true,
+            "text": "0",
+            "value": "0"
+          }
+        ],
+        "query": "0",
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-3M",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Route Rankings",
+  "uid": "routeRank10",
+  "version": 1,
+  "weekStart": ""
+}

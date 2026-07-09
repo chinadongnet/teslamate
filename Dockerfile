@@ -37,13 +37,14 @@ RUN mix assets.deploy
 
 COPY lib lib
 COPY priv/repo/migrations priv/repo/migrations
+COPY priv/cldr priv/cldr
 COPY priv/gettext priv/gettext
 COPY grafana/dashboards grafana/dashboards
 COPY VERSION VERSION
-RUN SKIP_LOCALE_DOWNLOAD=true mix compile
+RUN LOCALES=/opt/app/priv/cldr SKIP_LOCALE_DOWNLOAD=true mix compile
 
 COPY config/runtime.exs config/runtime.exs
-RUN SKIP_LOCALE_DOWNLOAD=true mix release --path /opt/built
+RUN LOCALES=/opt/app/priv/cldr SKIP_LOCALE_DOWNLOAD=true mix release --path /opt/built
 
 ########################################################################
 

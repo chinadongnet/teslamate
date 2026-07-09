@@ -40,7 +40,7 @@ COPY priv/repo/migrations priv/repo/migrations
 COPY priv/gettext priv/gettext
 COPY grafana/dashboards grafana/dashboards
 COPY VERSION VERSION
-RUN mix compile
+RUN SKIP_LOCALE_DOWNLOAD=true mix compile
 
 COPY config/runtime.exs config/runtime.exs
 RUN SKIP_LOCALE_DOWNLOAD=true mix release --path /opt/built

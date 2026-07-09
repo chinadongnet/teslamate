@@ -1,6 +1,6 @@
 services:
   teslamate:
-    image: teslamate:4.1.0-dev-da09dc3
+    image: teslamate:4.1.0-dev.120260709.2154
     restart: unless-stopped
     depends_on:
       - database
@@ -30,7 +30,7 @@ services:
       - teslamate-db:/var/lib/postgresql
 
   grafana:
-    image: teslamate/grafana:4.1.0-dev-da09dc3
+    image: teslamate/grafana:4.1.0-dev.120260709.2154
     restart: unless-stopped
     depends_on:
       - database

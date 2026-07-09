@@ -1,8 +1,8 @@
 # TeslaMate 功能与架构文档
 
 更新日期：2026-07-08  
-当前分支：`test_ui_branch`  
-当前本地版本：`4.1.0-dev`  
+当前分支：`dev-main`
+当前本地版本：`4.1.0-dev.120260709.2154`
 本地访问地址：
 
 - TeslaMate Web：`http://localhost:4001`
@@ -105,7 +105,7 @@ TeslaMate 会对车辆位置做地址解析，并支持自定义地理围栏。
 
 ### 2.5 Grafana 仪表盘
 
-Grafana 使用单独镜像 `teslamate/grafana:4.1.0-dev-da09dc3`。该镜像内置：
+Grafana 使用单独镜像 `teslamate/grafana:4.1.0-dev.120260709.2154`。该镜像内置：
 
 - 数据源配置：`grafana/datasource.yml`
 - Dashboard provisioning：`grafana/dashboards.yml`

@@ -2583,8 +2583,8 @@
       {
         "current": {
           "selected": true,
-          "text": "OpenStreetMap",
-          "value": "osm"
+          "text": "Baidu Map",
+          "value": "baidu"
         },
         "hide": 0,
         "includeAll": false,
@@ -2593,7 +2593,7 @@
         "name": "map_provider",
         "options": [
           {
-            "selected": true,
+            "selected": false,
             "text": "OpenStreetMap",
             "value": "osm"
           },
@@ -2603,7 +2603,7 @@
             "value": "amap"
           },
           {
-            "selected": false,
+            "selected": true,
             "text": "Baidu Map",
             "value": "baidu"
           }

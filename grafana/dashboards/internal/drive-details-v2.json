@@ -652,9 +652,14 @@
       "maxDataPoints": 50000,
       "options": {
         "basemap": {
-          "config": {},
-          "name": "Layer 0",
-          "type": "osm-standard"
+          "config": {
+            "url": "${map_tile_url:raw}",
+            "attribution": "${map_attribution:raw}",
+            "minZoom": 0,
+            "maxZoom": 19
+          },
+          "name": "Selected map provider",
+          "type": "xyz"
         },
         "controls": {
           "mouseWheelZoom": true,
@@ -736,7 +741,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH drive_positions AS (\n  SELECT\n    date,\n    latitude,\n    longitude,\n    GREATEST(COALESCE(speed, 0), 0)::numeric AS speed_km_h,\n    convert_km(GREATEST(COALESCE(speed, 0), 0)::numeric, 'mi') AS speed_mph\n  FROM positions\n  WHERE\n    car_id = $car_id AND\n    drive_id = $drive_id AND\n    $__timeFilter(date) AND\n    latitude IS NOT NULL AND\n    longitude IS NOT NULL\n), speed_bounds AS (\n  SELECT\n    *,\n    MAX(speed_km_h) OVER () AS max_speed_km_h\n  FROM drive_positions\n)\nSELECT\n  $__time(date),\n  latitude,\n  longitude,\n  speed_km_h,\n  speed_mph,\n  CASE\n    WHEN max_speed_km_h > 0 THEN ROUND(speed_km_h / max_speed_km_h * 100, 0)\n    ELSE 0\n  END AS speed_percent\nFROM speed_bounds\nORDER BY date ASC",
+          "rawSql": "WITH source_positions AS (\n  SELECT\n    date,\n    latitude::double precision AS raw_latitude,\n    longitude::double precision AS raw_longitude,\n    GREATEST(COALESCE(speed, 0), 0)::numeric AS speed_km_h,\n    convert_km(GREATEST(COALESCE(speed, 0), 0)::numeric, 'mi') AS speed_mph\n  FROM positions\n  WHERE\n    car_id = $car_id AND\n    drive_id = $drive_id AND\n    $__timeFilter(date) AND\n    latitude IS NOT NULL AND\n    longitude IS NOT NULL\n), transform_input AS (\n  SELECT\n    *,\n    raw_longitude - 105.0 AS x,\n    raw_latitude - 35.0 AS y,\n    raw_longitude BETWEEN 72.004 AND 137.8347\n      AND raw_latitude BETWEEN 0.8293 AND 55.8271 AS in_china\n  FROM source_positions\n), transform_delta AS (\n  SELECT\n    *,\n    -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * sqrt(abs(x))\n      + (20.0 * sin(6.0 * x * pi()) + 20.0 * sin(2.0 * x * pi())) * 2.0 / 3.0\n      + (20.0 * sin(y * pi()) + 40.0 * sin(y / 3.0 * pi())) * 2.0 / 3.0\n      + (160.0 * sin(y / 12.0 * pi()) + 320.0 * sin(y * pi() / 30.0)) * 2.0 / 3.0 AS d_lat,\n    300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * sqrt(abs(x))\n      + (20.0 * sin(6.0 * x * pi()) + 20.0 * sin(2.0 * x * pi())) * 2.0 / 3.0\n      + (20.0 * sin(x * pi()) + 40.0 * sin(x / 3.0 * pi())) * 2.0 / 3.0\n      + (150.0 * sin(x / 12.0 * pi()) + 300.0 * sin(x / 30.0 * pi())) * 2.0 / 3.0 AS d_lon\n  FROM transform_input\n), gcj_positions AS (\n  SELECT\n    *,\n    raw_latitude / 180.0 * pi() AS rad_lat,\n    sin(raw_latitude / 180.0 * pi()) AS sin_lat\n  FROM transform_delta\n), projected_positions AS (\n  SELECT\n    *,\n    1.0 - 0.00669342162296594323 * sin_lat * sin_lat AS magic\n  FROM gcj_positions\n), provider_positions AS (\n  SELECT\n    date,\n    speed_km_h,\n    speed_mph,\n    CASE\n      WHEN '$map_provider' IN ('amap', 'baidu') AND in_china THEN\n        raw_latitude + (d_lat * 180.0) / ((6378245.0 * (1.0 - 0.00669342162296594323)) / (magic * sqrt(magic)) * pi())\n      ELSE raw_latitude\n    END AS gcj_latitude,\n    CASE\n      WHEN '$map_provider' IN ('amap', 'baidu') AND in_china THEN\n        raw_longitude + (d_lon * 180.0) / (6378245.0 / sqrt(magic) * cos(rad_lat) * pi())\n      ELSE raw_longitude\n    END AS gcj_longitude\n  FROM projected_positions\n), display_positions AS (\n  SELECT\n    date,\n    speed_km_h,\n    speed_mph,\n    CASE\n      WHEN '$map_provider' = 'baidu' THEN\n        sqrt(gcj_longitude * gcj_longitude + gcj_latitude * gcj_latitude)\n          * sin(atan2(gcj_latitude, gcj_longitude) + 0.000003 * cos(gcj_longitude * pi() * 3000.0 / 180.0)) + 0.006\n      ELSE gcj_latitude\n    END AS latitude,\n    CASE\n      WHEN '$map_provider' = 'baidu' THEN\n        sqrt(gcj_longitude * gcj_longitude + gcj_latitude * gcj_latitude)\n          * cos(atan2(gcj_latitude, gcj_longitude) + 0.000003 * cos(gcj_longitude * pi() * 3000.0 / 180.0)) + 0.0065\n      ELSE gcj_longitude\n    END AS longitude\n  FROM provider_positions\n), speed_bounds AS (\n  SELECT\n    *,\n    MAX(speed_km_h) OVER () AS max_speed_km_h\n  FROM display_positions\n)\nSELECT\n  $__time(date),\n  latitude,\n  longitude,\n  speed_km_h,\n  speed_mph,\n  CASE\n    WHEN max_speed_km_h > 0 THEN ROUND(speed_km_h / max_speed_km_h * 100, 0)\n    ELSE 0\n  END AS speed_percent\nFROM speed_bounds\nORDER BY date ASC",
           "refId": "A",
           "sql": {
             "columns": [
@@ -2570,6 +2575,71 @@
         "name": "length_unit",
         "options": [],
         "query": "select unit_of_length from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "OpenStreetMap",
+          "value": "osm"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Map",
+        "multi": false,
+        "name": "map_provider",
+        "options": [
+          {
+            "selected": true,
+            "text": "OpenStreetMap",
+            "value": "osm"
+          },
+          {
+            "selected": false,
+            "text": "Gaode Map",
+            "value": "amap"
+          },
+          {
+            "selected": false,
+            "text": "Baidu Map",
+            "value": "baidu"
+          }
+        ],
+        "query": "OpenStreetMap : osm, Gaode Map : amap, Baidu Map : baidu",
+        "type": "custom"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT CASE WHEN '$map_provider' = 'amap' THEN 'https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}' WHEN '$map_provider' = 'baidu' THEN 'https://gss0.bdstatic.com/8bo_dTSlRsgBo1vgoIiO_jowehsv/tile/?qt=tile&x={x}&y={-y}&z={z}&styles=pl&scaler=1&p=1' ELSE 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' END;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "map_tile_url",
+        "options": [],
+        "query": "SELECT CASE WHEN '$map_provider' = 'amap' THEN 'https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}' WHEN '$map_provider' = 'baidu' THEN 'https://gss0.bdstatic.com/8bo_dTSlRsgBo1vgoIiO_jowehsv/tile/?qt=tile&x={x}&y={-y}&z={z}&styles=pl&scaler=1&p=1' ELSE 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' END;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT CASE WHEN '$map_provider' = 'amap' THEN '(C) AutoNavi' WHEN '$map_provider' = 'baidu' THEN '(C) Baidu' ELSE '(C) OpenStreetMap contributors' END;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "map_attribution",
+        "options": [],
+        "query": "SELECT CASE WHEN '$map_provider' = 'amap' THEN '(C) AutoNavi' WHEN '$map_provider' = 'baidu' THEN '(C) Baidu' ELSE '(C) OpenStreetMap contributors' END;",
         "refresh": 1,
         "regex": "",
         "regexApplyTo": "value",

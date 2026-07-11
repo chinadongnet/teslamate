@@ -215,7 +215,7 @@
                   {
                     "targetBlank": false,
                     "title": "View fastest drive",
-                    "url": "/d/driveDetailsV2/drive-details-v2?from=${__data.fields.fastest_start_ts.numeric}&to=${__data.fields.fastest_end_ts.numeric}&var-car_id=${__data.fields.car_id.numeric}&var-drive_id=${__data.fields.fastest_drive_id.numeric}"
+                    "url": "/d/zm7wN6Zgz/drive-details?from=${__data.fields.fastest_start_ts.numeric}&to=${__data.fields.fastest_end_ts.numeric}&var-car_id=${__data.fields.car_id.numeric}&var-drive_id=${__data.fields.fastest_drive_id.numeric}"
                   }
                 ]
               },
@@ -245,7 +245,7 @@
                   {
                     "targetBlank": false,
                     "title": "View slowest drive",
-                    "url": "/d/driveDetailsV2/drive-details-v2?from=${__data.fields.slowest_start_ts.numeric}&to=${__data.fields.slowest_end_ts.numeric}&var-car_id=${__data.fields.car_id.numeric}&var-drive_id=${__data.fields.slowest_drive_id.numeric}"
+                    "url": "/d/zm7wN6Zgz/drive-details?from=${__data.fields.slowest_start_ts.numeric}&to=${__data.fields.slowest_end_ts.numeric}&var-car_id=${__data.fields.car_id.numeric}&var-drive_id=${__data.fields.slowest_drive_id.numeric}"
                   }
                 ]
               },

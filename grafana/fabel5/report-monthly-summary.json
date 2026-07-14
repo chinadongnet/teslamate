@@ -1,0 +1,489 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "icon": "dashboard",
+      "tags": [],
+      "title": "TeslaMate",
+      "tooltip": "",
+      "type": "link",
+      "url": "${base_url:raw}"
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "tags": [
+        "tesla"
+      ],
+      "title": "Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Distance"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Hours Driven"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Energy Used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kwatth"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kWh/100"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Energy Added"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kwatth"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Charging Cost"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cost per 100"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 12,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": [
+            "Distance",
+            "Energy Used",
+            "Energy Added",
+            "Charging Cost"
+          ],
+          "reducer": [
+            "sum"
+          ],
+          "show": true
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_stats AS (\n  SELECT\n    date_trunc('month', TIMEZONE('$__timezone', TIMEZONE('UTC', start_date))) AS mon,\n    count(*) AS drives,\n    sum(convert_km(distance::numeric, '$length_unit')) AS dist,\n    sum(duration_min) / 60.0 AS hours,\n    sum((start_${preferred_range}_range_km - end_${preferred_range}_range_km) * cars.efficiency) AS energy,\n    sum(ascent) AS ascent\n  FROM drives\n  INNER JOIN cars ON drives.car_id = cars.id\n  WHERE drives.car_id = $car_id AND $__timeFilter(start_date)\n    AND end_date IS NOT NULL\n  GROUP BY 1\n),\ncharge_stats AS (\n  SELECT\n    date_trunc('month', TIMEZONE('$__timezone', TIMEZONE('UTC', start_date))) AS mon,\n    count(*) AS charges,\n    sum(charge_energy_added) AS added,\n    sum(cost) AS cost\n  FROM charging_processes\n  WHERE car_id = $car_id AND $__timeFilter(start_date) AND end_date IS NOT NULL\n  GROUP BY 1\n)\nSELECT\n  to_char(COALESCE(d.mon, c.mon), 'YYYY-MM') AS \"Month\",\n  d.drives AS \"Drives\",\n  d.dist AS \"Distance\",\n  d.hours AS \"Hours Driven\",\n  d.energy AS \"Energy Used\",\n  100 * d.energy / NULLIF(d.dist, 0) AS \"kWh/100\",\n  d.ascent AS \"Ascent (m)\",\n  c.charges AS \"Charges\",\n  c.added AS \"Energy Added\",\n  c.cost AS \"Charging Cost\",\n  100 * c.cost / NULLIF(d.dist, 0) AS \"Cost per 100\"\nFROM drive_stats d\nFULL OUTER JOIN charge_stats c ON d.mon = c.mon\nORDER BY 1 DESC;",
+          "refId": "A"
+        }
+      ],
+      "title": "Monthly Summary",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 14
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_stats AS (\n  SELECT\n    date_trunc('month', TIMEZONE('$__timezone', TIMEZONE('UTC', start_date))) AS mon,\n    count(*) AS drives,\n    sum(convert_km(distance::numeric, '$length_unit')) AS dist,\n    sum(duration_min) / 60.0 AS hours,\n    sum((start_${preferred_range}_range_km - end_${preferred_range}_range_km) * cars.efficiency) AS energy,\n    sum(ascent) AS ascent\n  FROM drives\n  INNER JOIN cars ON drives.car_id = cars.id\n  WHERE drives.car_id = $car_id AND $__timeFilter(start_date)\n    AND end_date IS NOT NULL\n  GROUP BY 1\n),\ncharge_stats AS (\n  SELECT\n    date_trunc('month', TIMEZONE('$__timezone', TIMEZONE('UTC', start_date))) AS mon,\n    count(*) AS charges,\n    sum(charge_energy_added) AS added,\n    sum(cost) AS cost\n  FROM charging_processes\n  WHERE car_id = $car_id AND $__timeFilter(start_date) AND end_date IS NOT NULL\n  GROUP BY 1\n)\nSELECT to_char(mon, 'YYYY-MM') AS \"Month\"\nFROM drive_stats\nORDER BY dist DESC NULLS LAST\nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Busiest Month (Distance)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 14
+      },
+      "id": 14,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_stats AS (\n  SELECT\n    date_trunc('month', TIMEZONE('$__timezone', TIMEZONE('UTC', start_date))) AS mon,\n    count(*) AS drives,\n    sum(convert_km(distance::numeric, '$length_unit')) AS dist,\n    sum(duration_min) / 60.0 AS hours,\n    sum((start_${preferred_range}_range_km - end_${preferred_range}_range_km) * cars.efficiency) AS energy,\n    sum(ascent) AS ascent\n  FROM drives\n  INNER JOIN cars ON drives.car_id = cars.id\n  WHERE drives.car_id = $car_id AND $__timeFilter(start_date)\n    AND end_date IS NOT NULL\n  GROUP BY 1\n),\ncharge_stats AS (\n  SELECT\n    date_trunc('month', TIMEZONE('$__timezone', TIMEZONE('UTC', start_date))) AS mon,\n    count(*) AS charges,\n    sum(charge_energy_added) AS added,\n    sum(cost) AS cost\n  FROM charging_processes\n  WHERE car_id = $car_id AND $__timeFilter(start_date) AND end_date IS NOT NULL\n  GROUP BY 1\n)\nSELECT to_char(mon, 'YYYY-MM') AS \"Month\"\nFROM charge_stats\nORDER BY cost DESC NULLS LAST\nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Most Expensive Month",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 14
+      },
+      "id": 15,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_stats AS (\n  SELECT\n    date_trunc('month', TIMEZONE('$__timezone', TIMEZONE('UTC', start_date))) AS mon,\n    count(*) AS drives,\n    sum(convert_km(distance::numeric, '$length_unit')) AS dist,\n    sum(duration_min) / 60.0 AS hours,\n    sum((start_${preferred_range}_range_km - end_${preferred_range}_range_km) * cars.efficiency) AS energy,\n    sum(ascent) AS ascent\n  FROM drives\n  INNER JOIN cars ON drives.car_id = cars.id\n  WHERE drives.car_id = $car_id AND $__timeFilter(start_date)\n    AND end_date IS NOT NULL\n  GROUP BY 1\n),\ncharge_stats AS (\n  SELECT\n    date_trunc('month', TIMEZONE('$__timezone', TIMEZONE('UTC', start_date))) AS mon,\n    count(*) AS charges,\n    sum(charge_energy_added) AS added,\n    sum(cost) AS cost\n  FROM charging_processes\n  WHERE car_id = $car_id AND $__timeFilter(start_date) AND end_date IS NOT NULL\n  GROUP BY 1\n)\nSELECT avg(dist) AS \"Distance\"\nFROM drive_stats;",
+          "refId": "A"
+        }
+      ],
+      "title": "Ø Monthly Distance ($length_unit)",
+      "type": "stat"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "tesla"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text \nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC;",
+        "hide": 2,
+        "includeAll": true,
+        "label": "Car",
+        "name": "car_id",
+        "options": [],
+        "query": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text \nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "select unit_of_length from settings limit 1;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "length_unit",
+        "options": [],
+        "query": "select unit_of_length from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "select preferred_range from settings limit 1;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "preferred_range",
+        "options": [],
+        "query": "select preferred_range from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "select base_url from settings limit 1;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "base_url",
+        "options": [],
+        "query": "select base_url from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1y",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Report · Monthly Summary",
+  "uid": "tm-report-monthly",
+  "version": 1,
+  "weekStart": ""
+}

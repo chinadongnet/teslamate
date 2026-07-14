@@ -1,0 +1,345 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "icon": "dashboard",
+      "tags": [],
+      "title": "TeslaMate",
+      "tooltip": "",
+      "type": "link",
+      "url": "${base_url:raw}"
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "tags": [
+        "tesla"
+      ],
+      "title": "Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-YlRd"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SOC per Day"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 19,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 6,
+      "options": {
+        "basemap": {
+          "config": {
+            "showLabels": true,
+            "theme": "dark"
+          },
+          "name": "Layer 0",
+          "tooltip": true,
+          "type": "carto"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showMeasure": false,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": false,
+              "style": {
+                "color": {
+                  "field": "SOC per Day",
+                  "fixed": "dark-purple"
+                },
+                "opacity": 0.65,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "field": "Stays",
+                  "fixed": 6,
+                  "max": 22,
+                  "min": 5
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 15,
+                  "offsetY": 0,
+                  "textAlign": "left",
+                  "textBaseline": "middle"
+                },
+                "text": {
+                  "field": "Location",
+                  "fixed": "",
+                  "mode": "field"
+                }
+              }
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "Standby drain",
+            "tooltip": true,
+            "type": "markers"
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "allLayers": true,
+          "dashboardVariable": false,
+          "id": "fit",
+          "lat": 0,
+          "lon": 0,
+          "noRepeat": false,
+          "zoom": 15
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH stays AS (\n  SELECT\n    d.end_address_id,\n    d.end_date,\n    pe.battery_level AS soc_end,\n    LEAD(d.start_date) OVER (ORDER BY d.start_date) AS next_start,\n    LEAD(ps.battery_level) OVER (ORDER BY d.start_date) AS soc_next\n  FROM drives d\n  JOIN positions pe ON d.end_position_id = pe.id\n  JOIN positions ps ON d.start_position_id = ps.id\n  WHERE d.car_id = $car_id AND d.end_date IS NOT NULL\n),\nclean AS (\n  SELECT\n    end_address_id,\n    soc_end - soc_next AS soc_drop,\n    date_part('epoch', next_start - end_date) / 86400.0 AS days\n  FROM stays\n  WHERE next_start IS NOT NULL\n    AND $__timeFilter(end_date)\n    AND date_part('epoch', next_start - end_date) >= 6 * 3600\n    AND soc_end IS NOT NULL AND soc_next IS NOT NULL\n    AND NOT EXISTS (\n      SELECT 1 FROM charging_processes cp\n      WHERE cp.car_id = $car_id\n        AND cp.start_date >= stays.end_date\n        AND cp.start_date < stays.next_start)\n)\nSELECT\n  COALESCE(a.name, a.display_name, 'Unknown') AS \"Location\",\n  a.latitude AS latitude,\n  a.longitude AS longitude,\n  count(*) AS \"Stays\",\n  sum(soc_drop) / NULLIF(sum(days), 0) AS \"SOC per Day\"\nFROM clean\nJOIN addresses a ON clean.end_address_id = a.id\nGROUP BY 1, 2, 3\nHAVING count(*) >= 2 AND sum(days) > 0.5;",
+          "refId": "A"
+        }
+      ],
+      "title": "Ø SOC Loss per Day While Parked (stays ≥ 6 h, no charging)",
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Days Parked"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ø SOC per Day"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "id": 7,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH stays AS (\n  SELECT\n    d.end_address_id,\n    d.end_date,\n    pe.battery_level AS soc_end,\n    LEAD(d.start_date) OVER (ORDER BY d.start_date) AS next_start,\n    LEAD(ps.battery_level) OVER (ORDER BY d.start_date) AS soc_next\n  FROM drives d\n  JOIN positions pe ON d.end_position_id = pe.id\n  JOIN positions ps ON d.start_position_id = ps.id\n  WHERE d.car_id = $car_id AND d.end_date IS NOT NULL\n),\nclean AS (\n  SELECT\n    end_address_id,\n    soc_end - soc_next AS soc_drop,\n    date_part('epoch', next_start - end_date) / 86400.0 AS days\n  FROM stays\n  WHERE next_start IS NOT NULL\n    AND $__timeFilter(end_date)\n    AND date_part('epoch', next_start - end_date) >= 6 * 3600\n    AND soc_end IS NOT NULL AND soc_next IS NOT NULL\n    AND NOT EXISTS (\n      SELECT 1 FROM charging_processes cp\n      WHERE cp.car_id = $car_id\n        AND cp.start_date >= stays.end_date\n        AND cp.start_date < stays.next_start)\n)\nSELECT\n  COALESCE(a.name, a.display_name, 'Unknown') AS \"Location\",\n  count(*) AS \"Stays\",\n  sum(days) AS \"Days Parked\",\n  sum(soc_drop) / NULLIF(sum(days), 0) AS \"Ø SOC per Day\"\nFROM clean\nJOIN addresses a ON clean.end_address_id = a.id\nGROUP BY 1\nHAVING count(*) >= 2 AND sum(days) > 0.5\nORDER BY 4 DESC\nLIMIT 10;",
+          "refId": "A"
+        }
+      ],
+      "title": "Drain Ranking",
+      "type": "table"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "tesla"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text \nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC;",
+        "hide": 2,
+        "includeAll": true,
+        "label": "Car",
+        "name": "car_id",
+        "options": [],
+        "query": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text \nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "select base_url from settings limit 1;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "base_url",
+        "options": [],
+        "query": "select base_url from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1y",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Map · Standby Drain by Location",
+  "uid": "tm-map-standby-drain",
+  "version": 1,
+  "weekStart": ""
+}

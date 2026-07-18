@@ -1,0 +1,434 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "icon": "dashboard",
+      "tags": [],
+      "title": "TeslaMate",
+      "tooltip": "",
+      "type": "link",
+      "url": "${base_url:raw}"
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "tags": [
+        "tesla"
+      ],
+      "title": "Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-YlRd"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 19,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "basemap": {
+          "config": {
+            "showLabels": true,
+            "theme": "dark"
+          },
+          "name": "Layer 0",
+          "tooltip": true,
+          "type": "carto"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showMeasure": false,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "blur": 10,
+              "radius": 5,
+              "weight": {
+                "fixed": 1,
+                "max": 1,
+                "min": 0,
+                "field": "speed"
+              }
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "High speed density",
+            "tooltip": false,
+            "type": "heatmap",
+            "filterData": {
+              "id": "byRefId",
+              "options": "A"
+            }
+          },
+          {
+            "config": {
+              "showLegend": false,
+              "style": {
+                "color": {
+                  "field": "Top Speed",
+                  "fixed": "dark-purple"
+                },
+                "opacity": 0.7,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "field": "Top Speed",
+                  "fixed": 6,
+                  "max": 12,
+                  "min": 3
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 15,
+                  "offsetY": 0,
+                  "textAlign": "left",
+                  "textBaseline": "middle"
+                },
+                "text": {
+                  "fixed": "",
+                  "mode": "fixed"
+                }
+              }
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "Top speed per drive",
+            "tooltip": true,
+            "type": "markers",
+            "filterData": {
+              "id": "byRefId",
+              "options": "B"
+            }
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "allLayers": true,
+          "dashboardVariable": false,
+          "id": "fit",
+          "lat": 0,
+          "lon": 0,
+          "noRepeat": false,
+          "zoom": 15
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT latitude, longitude, speed\nFROM positions\nWHERE car_id = $car_id AND $__timeFilter(date)\n  AND speed >= 90 AND ideal_battery_range_km IS NOT NULL AND mod(id, 2) = 0;",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT DISTINCT ON (drive_id)\n  latitude, longitude,\n  convert_km(speed::numeric, '$length_unit') AS \"Top Speed\"\nFROM positions\nWHERE car_id = $car_id AND $__timeFilter(date)\n  AND drive_id IS NOT NULL AND speed IS NOT NULL\nORDER BY drive_id, speed DESC\nLIMIT 300;",
+          "refId": "B"
+        }
+      ],
+      "title": "High-Speed Zones & Top Speed per Drive",
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT convert_km(max(speed_max)::numeric, '$length_unit') AS \"Max\"\nFROM drives\nWHERE car_id = $car_id AND $__timeFilter(start_date) AND end_date IS NOT NULL;",
+          "refId": "A"
+        }
+      ],
+      "title": "Max Speed in Period ($speed_unit)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 19
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT count(*) AS \"Points\"\nFROM positions\nWHERE car_id = $car_id AND $__timeFilter(date) AND speed >= 90;",
+          "refId": "A"
+        }
+      ],
+      "title": "Positions ≥ 90 km/h",
+      "type": "stat"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "tesla"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text \nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC;",
+        "hide": 2,
+        "includeAll": true,
+        "label": "Car",
+        "name": "car_id",
+        "options": [],
+        "query": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text \nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "select unit_of_length from settings limit 1;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "length_unit",
+        "options": [],
+        "query": "select unit_of_length from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT  CASE WHEN '$length_unit' = 'km' THEN 'km/h' WHEN '$length_unit' = 'mi' THEN 'mph' END",
+        "hide": 2,
+        "includeAll": false,
+        "name": "speed_unit",
+        "options": [],
+        "query": "SELECT  CASE WHEN '$length_unit' = 'km' THEN 'km/h' WHEN '$length_unit' = 'mi' THEN 'mph' END",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "select base_url from settings limit 1;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "base_url",
+        "options": [],
+        "query": "select base_url from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Map · Speed Hotspots",
+  "uid": "tm-map-speed-hotspots",
+  "version": 1,
+  "weekStart": ""
+}

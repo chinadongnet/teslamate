@@ -1,0 +1,613 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "icon": "dashboard",
+      "tags": [],
+      "title": "TeslaMate",
+      "tooltip": "",
+      "type": "link",
+      "url": "${base_url:raw}"
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "tags": [
+        "tesla"
+      ],
+      "title": "Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 20,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT split_part(version, ' ', 1) AS \"Version\"\nFROM updates\nWHERE car_id = $car_id AND end_date IS NOT NULL AND version IS NOT NULL\nORDER BY start_date DESC\nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Current Firmware",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 21,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT date_part('day', TIMEZONE('UTC', now()) - max(start_date)) AS \"Days\"\nFROM updates\nWHERE car_id = $car_id AND end_date IS NOT NULL AND version IS NOT NULL;",
+          "refId": "A"
+        }
+      ],
+      "title": "Days on Current Firmware",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 22,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT count(DISTINCT split_part(version, ' ', 1)) AS \"Versions\"\nFROM updates\nWHERE car_id = $car_id AND end_date IS NOT NULL AND version IS NOT NULL;",
+          "refId": "A"
+        }
+      ],
+      "title": "Firmware Versions Logged",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "id": 23,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.85,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "xField": "Version"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH versions AS (\n  SELECT\n    split_part(version, ' ', 1) AS version,\n    start_date,\n    COALESCE(LEAD(start_date) OVER (ORDER BY start_date),\n             TIMEZONE('UTC', now())) AS next_date\n  FROM updates\n  WHERE car_id = $car_id AND end_date IS NOT NULL AND version IS NOT NULL\n),\nper_version AS (\n  SELECT\n    v.version,\n    min(v.start_date) AS installed,\n    sum((start_${preferred_range}_range_km - end_${preferred_range}_range_km) * cars.efficiency) AS energy,\n    sum(convert_km(distance::numeric, '$length_unit')) AS dist\n  FROM versions v\n  JOIN drives ON drives.start_date >= v.start_date\n             AND drives.start_date < v.next_date\n  INNER JOIN cars ON drives.car_id = cars.id\n  WHERE drives.car_id = $car_id AND drives.end_date IS NOT NULL\n    AND distance > 1 AND duration_min >= 2\n  GROUP BY 1\n)\nSELECT\n  version AS \"Version\",\n  100 * energy / NULLIF(dist, 0) AS \"Consumption\"\nFROM per_version\nWHERE dist > 50\nORDER BY installed\n;",
+          "refId": "A"
+        }
+      ],
+      "title": "Ø Consumption by Firmware Version (kWh / 100 $length_unit)",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Distance"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kWh/100"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Days"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "id": 24,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH versions AS (\n  SELECT\n    split_part(version, ' ', 1) AS version,\n    start_date,\n    COALESCE(LEAD(start_date) OVER (ORDER BY start_date),\n             TIMEZONE('UTC', now())) AS next_date\n  FROM updates\n  WHERE car_id = $car_id AND end_date IS NOT NULL AND version IS NOT NULL\n)\nSELECT\n  v.version AS \"Version\",\n  TIMEZONE('$__timezone', TIMEZONE('UTC', v.start_date)) AS \"Installed\",\n  round(date_part('epoch', v.next_date - v.start_date) / 86400) AS \"Days\",\n  count(drives.id) AS \"Drives\",\n  convert_km(sum(distance)::numeric, '$length_unit') AS \"Distance\",\n  100 * sum((start_${preferred_range}_range_km - end_${preferred_range}_range_km) * cars.efficiency) / NULLIF(sum(convert_km(distance::numeric, '$length_unit')), 0) AS \"kWh/100\"\nFROM versions v\nLEFT JOIN drives ON drives.start_date >= v.start_date\n                AND drives.start_date < v.next_date\n                AND drives.car_id = $car_id\n                AND drives.end_date IS NOT NULL\n                AND distance > 1 AND duration_min >= 2\nLEFT JOIN cars ON cars.id = $car_id\nGROUP BY v.version, v.start_date, v.next_date\nORDER BY v.start_date DESC;",
+          "refId": "A"
+        }
+      ],
+      "title": "Firmware History & Stats",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Energy recovered through regenerative braking, normalized per 100 $length_unit driven on each firmware version, split by whether climate control was running. Running the A/C or heater draws power from the pack that can offset regen in the same net-power samples, biasing the total downward independent of firmware — comparing the two series isolates the firmware effect from that climate-load noise. Requires the Streaming API to have been enabled during those drives.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 25
+      },
+      "id": 25,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.85,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "xField": "Version"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH versions AS (\n  SELECT\n    split_part(version, ' ', 1) AS version,\n    start_date,\n    COALESCE(LEAD(start_date) OVER (ORDER BY start_date),\n             TIMEZONE('UTC', now())) AS next_date\n  FROM updates\n  WHERE car_id = $car_id AND end_date IS NOT NULL AND version IS NOT NULL\n),\ndrive_versions AS (\n  SELECT\n    drives.id AS drive_id,\n    v.version,\n    v.start_date AS installed,\n    distance\n  FROM versions v\n  JOIN drives ON drives.start_date >= v.start_date\n             AND drives.start_date < v.next_date\n  WHERE drives.car_id = $car_id AND drives.end_date IS NOT NULL\n    AND distance > 1 AND duration_min >= 2\n),\npos AS (\n  SELECT\n    drive_id,\n    power,\n    is_climate_on,\n    extract(second FROM date - lag(date) OVER (PARTITION BY drive_id ORDER BY date)) AS seconds\n  FROM positions\n  WHERE car_id = $car_id AND drive_id IS NOT NULL\n),\ndrive_stats AS (\n  SELECT\n    drive_id,\n    sum(power * seconds / 3600.0) FILTER (WHERE power < 0 AND seconds < 1.5) * -1 AS regen_kwh,\n    avg(is_climate_on::int) >= 0.5 AS climate_on\n  FROM pos\n  WHERE seconds IS NOT NULL\n  GROUP BY drive_id\n),\nper_version AS (\n  SELECT\n    dv.version,\n    min(dv.installed) AS installed,\n    sum(convert_km(dv.distance::numeric, '$length_unit')) FILTER (WHERE ds.climate_on) AS dist_on,\n    sum(ds.regen_kwh) FILTER (WHERE ds.climate_on) AS regen_on,\n    sum(convert_km(dv.distance::numeric, '$length_unit')) FILTER (WHERE NOT ds.climate_on) AS dist_off,\n    sum(ds.regen_kwh) FILTER (WHERE NOT ds.climate_on) AS regen_off\n  FROM drive_versions dv\n  JOIN drive_stats ds ON ds.drive_id = dv.drive_id\n  GROUP BY 1\n)\nSELECT\n  version AS \"Version\",\n  100.0 * regen_on / NULLIF(dist_on, 0) AS \"Climate On\",\n  100.0 * regen_off / NULLIF(dist_off, 0) AS \"Climate Off\"\nFROM per_version\nWHERE COALESCE(dist_on, 0) + COALESCE(dist_off, 0) > 50\nORDER BY installed\n;",
+          "refId": "A"
+        }
+      ],
+      "title": "Ø Regen Recovered by Firmware Version, by Climate Use (kWh / 100 $length_unit)",
+      "type": "barchart"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "tesla"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text \nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC;",
+        "hide": 2,
+        "includeAll": true,
+        "label": "Car",
+        "name": "car_id",
+        "options": [],
+        "query": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text \nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "select unit_of_length from settings limit 1;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "length_unit",
+        "options": [],
+        "query": "select unit_of_length from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "select preferred_range from settings limit 1;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "preferred_range",
+        "options": [],
+        "query": "select preferred_range from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "select base_url from settings limit 1;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "base_url",
+        "options": [],
+        "query": "select base_url from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-2y",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Firmware Impact",
+  "uid": "tm-firmware-impact",
+  "version": 1,
+  "weekStart": ""
+}

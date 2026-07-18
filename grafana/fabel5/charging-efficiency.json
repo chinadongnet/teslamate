@@ -1,0 +1,832 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "icon": "dashboard",
+      "tags": [],
+      "title": "TeslaMate",
+      "tooltip": "",
+      "type": "link",
+      "url": "${base_url:raw}"
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "tags": [
+        "tesla"
+      ],
+      "title": "Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 85
+              },
+              {
+                "color": "green",
+                "value": 92
+              }
+            ]
+          },
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.id,\n    cp.start_date,\n    cp.charge_energy_added,\n    cp.charge_energy_used,\n    cp.address_id,\n    cp.duration_min,\n    CASE WHEN NULLIF(mode() WITHIN GROUP (ORDER BY charger_phases), 0) IS NULL\n         THEN 'DC' ELSE 'AC' END AS current,\n    max(charger_power) AS max_power\n  FROM charging_processes cp\n  JOIN charges ON cp.id = charges.charging_process_id\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added > 0.1\n    AND cp.charge_energy_used > 0.1\n  GROUP BY 1\n)\nSELECT 100.0 * sum(charge_energy_added) / NULLIF(sum(charge_energy_used), 0) AS \"Efficiency\"\nFROM sessions;",
+          "refId": "A"
+        }
+      ],
+      "title": "Overall Charging Efficiency",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 14,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.id,\n    cp.start_date,\n    cp.charge_energy_added,\n    cp.charge_energy_used,\n    cp.address_id,\n    cp.duration_min,\n    CASE WHEN NULLIF(mode() WITHIN GROUP (ORDER BY charger_phases), 0) IS NULL\n         THEN 'DC' ELSE 'AC' END AS current,\n    max(charger_power) AS max_power\n  FROM charging_processes cp\n  JOIN charges ON cp.id = charges.charging_process_id\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added > 0.1\n    AND cp.charge_energy_used > 0.1\n  GROUP BY 1\n)\nSELECT 100.0 * sum(charge_energy_added) / NULLIF(sum(charge_energy_used), 0) AS \"AC\"\nFROM sessions WHERE current = 'AC';",
+          "refId": "A"
+        }
+      ],
+      "title": "AC Efficiency",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 15,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.id,\n    cp.start_date,\n    cp.charge_energy_added,\n    cp.charge_energy_used,\n    cp.address_id,\n    cp.duration_min,\n    CASE WHEN NULLIF(mode() WITHIN GROUP (ORDER BY charger_phases), 0) IS NULL\n         THEN 'DC' ELSE 'AC' END AS current,\n    max(charger_power) AS max_power\n  FROM charging_processes cp\n  JOIN charges ON cp.id = charges.charging_process_id\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added > 0.1\n    AND cp.charge_energy_used > 0.1\n  GROUP BY 1\n)\nSELECT 100.0 * sum(charge_energy_added) / NULLIF(sum(charge_energy_used), 0) AS \"DC\"\nFROM sessions WHERE current = 'DC';",
+          "refId": "A"
+        }
+      ],
+      "title": "DC Efficiency",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "kwatth",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 16,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.id,\n    cp.start_date,\n    cp.charge_energy_added,\n    cp.charge_energy_used,\n    cp.address_id,\n    cp.duration_min,\n    CASE WHEN NULLIF(mode() WITHIN GROUP (ORDER BY charger_phases), 0) IS NULL\n         THEN 'DC' ELSE 'AC' END AS current,\n    max(charger_power) AS max_power\n  FROM charging_processes cp\n  JOIN charges ON cp.id = charges.charging_process_id\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added > 0.1\n    AND cp.charge_energy_used > 0.1\n  GROUP BY 1\n)\nSELECT sum(charge_energy_used) - sum(charge_energy_added) AS \"Lost\"\nFROM sessions;",
+          "refId": "A"
+        }
+      ],
+      "title": "Energy Lost",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
+      "id": 17,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.id,\n    cp.start_date,\n    cp.charge_energy_added,\n    cp.charge_energy_used,\n    cp.address_id,\n    cp.duration_min,\n    CASE WHEN NULLIF(mode() WITHIN GROUP (ORDER BY charger_phases), 0) IS NULL\n         THEN 'DC' ELSE 'AC' END AS current,\n    max(charger_power) AS max_power\n  FROM charging_processes cp\n  JOIN charges ON cp.id = charges.charging_process_id\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added > 0.1\n    AND cp.charge_energy_used > 0.1\n  GROUP BY 1\n)\nSELECT\n  date_trunc('month', TIMEZONE('UTC', start_date), '$__timezone') AS time,\n  100.0 * sum(charge_energy_added) FILTER (WHERE current = 'AC')\n        / NULLIF(sum(charge_energy_used) FILTER (WHERE current = 'AC'), 0) AS \"AC\",\n  100.0 * sum(charge_energy_added) FILTER (WHERE current = 'DC')\n        / NULLIF(sum(charge_energy_used) FILTER (WHERE current = 'DC'), 0) AS \"DC\"\nFROM sessions\nGROUP BY 1\nORDER BY 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Monthly Charging Efficiency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Sessions"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 5
+      },
+      "id": 18,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.85,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "xField": "Power (kW)"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.id,\n    cp.start_date,\n    cp.charge_energy_added,\n    cp.charge_energy_used,\n    cp.address_id,\n    cp.duration_min,\n    CASE WHEN NULLIF(mode() WITHIN GROUP (ORDER BY charger_phases), 0) IS NULL\n         THEN 'DC' ELSE 'AC' END AS current,\n    max(charger_power) AS max_power\n  FROM charging_processes cp\n  JOIN charges ON cp.id = charges.charging_process_id\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added > 0.1\n    AND cp.charge_energy_used > 0.1\n  GROUP BY 1\n)\nSELECT\n  (floor(max_power / 10) * 10)::int AS \"Power (kW)\",\n  100.0 * sum(charge_energy_added) / NULLIF(sum(charge_energy_used), 0) AS \"Efficiency\",\n  count(*) AS \"Sessions\"\nFROM sessions\nWHERE max_power > 0\nGROUP BY 1\nHAVING count(*) >= 2\nORDER BY 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Efficiency by Max Charging Power",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Added"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kwatth"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kwatth"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lost"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kwatth"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Efficiency"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "id": 19,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.id,\n    cp.start_date,\n    cp.charge_energy_added,\n    cp.charge_energy_used,\n    cp.address_id,\n    cp.duration_min,\n    CASE WHEN NULLIF(mode() WITHIN GROUP (ORDER BY charger_phases), 0) IS NULL\n         THEN 'DC' ELSE 'AC' END AS current,\n    max(charger_power) AS max_power\n  FROM charging_processes cp\n  JOIN charges ON cp.id = charges.charging_process_id\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added > 0.1\n    AND cp.charge_energy_used > 0.1\n  GROUP BY 1\n)\nSELECT\n  TIMEZONE('$__timezone', TIMEZONE('UTC', sessions.start_date)) AS \"Start\",\n  COALESCE(a.name, a.display_name, 'Unknown') AS \"Location\",\n  sessions.current AS \"Type\",\n  charge_energy_added AS \"Added\",\n  charge_energy_used AS \"Used\",\n  charge_energy_used - charge_energy_added AS \"Lost\",\n  100.0 * charge_energy_added / NULLIF(charge_energy_used, 0) AS \"Efficiency\"\nFROM sessions\nLEFT JOIN addresses a ON sessions.address_id = a.id\nWHERE duration_min >= 10\nORDER BY 6 DESC\nLIMIT 10;",
+          "refId": "A"
+        }
+      ],
+      "title": "Highest-Loss Sessions",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Added"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kwatth"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kwatth"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lost"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kwatth"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Efficiency"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 20,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.id,\n    cp.start_date,\n    cp.charge_energy_added,\n    cp.charge_energy_used,\n    cp.address_id,\n    cp.duration_min,\n    CASE WHEN NULLIF(mode() WITHIN GROUP (ORDER BY charger_phases), 0) IS NULL\n         THEN 'DC' ELSE 'AC' END AS current,\n    max(charger_power) AS max_power\n  FROM charging_processes cp\n  JOIN charges ON cp.id = charges.charging_process_id\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added > 0.1\n    AND cp.charge_energy_used > 0.1\n  GROUP BY 1\n)\nSELECT\n  TIMEZONE('$__timezone', TIMEZONE('UTC', sessions.start_date)) AS \"Start\",\n  COALESCE(a.name, a.display_name, 'Unknown') AS \"Location\",\n  sessions.current AS \"Type\",\n  charge_energy_added AS \"Added\",\n  charge_energy_used AS \"Used\",\n  charge_energy_used - charge_energy_added AS \"Lost\",\n  100.0 * charge_energy_added / NULLIF(charge_energy_used, 0) AS \"Efficiency\"\nFROM sessions\nLEFT JOIN addresses a ON sessions.address_id = a.id\nWHERE duration_min >= 10\nORDER BY 6 ASC\nLIMIT 10;",
+          "refId": "A"
+        }
+      ],
+      "title": "Lowest-Loss Sessions",
+      "type": "table"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "tesla"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text \nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC;",
+        "hide": 2,
+        "includeAll": true,
+        "label": "Car",
+        "name": "car_id",
+        "options": [],
+        "query": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text \nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "select base_url from settings limit 1;",
+        "hide": 2,
+        "includeAll": false,
+        "name": "base_url",
+        "options": [],
+        "query": "select base_url from settings limit 1;",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1y",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Charging Efficiency & Losses",
+  "uid": "tm-charging-efficiency",
+  "version": 1,
+  "weekStart": ""
+}

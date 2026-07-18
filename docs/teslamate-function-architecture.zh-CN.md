@@ -113,6 +113,25 @@ Grafana 使用单独镜像 `teslamate/grafana:4.1.0-dev.120260709.2154`。该镜
 
 Grafana 连接同一个 PostgreSQL 数据库，读取 TeslaMate 写入的数据进行可视化。
 
+#### Drive Details 速度轨迹图
+
+行程详情继续使用正式 dashboard，而不是维护单独的 V2 副本：
+
+- Dashboard UID：`zm7wN6Zgz`
+- 访问路径：`/d/zm7wN6Zgz/drive-details`
+- Dashboard 文件：`grafana/dashboards/internal/drive-details.json`
+
+地图查询使用 `car_id`、`drive_id` 和 dashboard 时间范围筛选位置点，并同时返回 km/h、mph 及本次行程内的相对速度。轨迹颜色规则如下：
+
+| 条件 | 轨迹颜色 | 含义 |
+| --- | --- | --- |
+| 速度低于 `5 km/h` | 黑色 | 低于普通步行速度或接近停止 |
+| 不低于 `5 km/h`，且低于本次最高速度的 50% | 红色 | 较慢行驶区段 |
+| 本次最高速度的 50%–80% | 绿色 | 中高速区段 |
+| 本次最高速度的 80%–100% | 深绿色 | 本次行程最快区段 |
+
+速度轨迹使用 4 px 线宽，底层叠加 8 px 黄色路线作为两侧描边。描边层关闭 tooltip，悬停时只展示速度轨迹的数据。Drives、Trip、Timeline 和路线排行 dashboard 均链接到上述正式入口。
+
 ### 2.6 MQTT
 
 TeslaMate 将车辆数据发布到 MQTT broker。
@@ -349,18 +368,20 @@ docker build `
 当前本地镜像：
 
 ```text
-teslamate/grafana:4.1.0-dev-da09dc3
-teslamate/grafana:latest
+teslamate/grafana:4.1.0-dev.120260709.2154
 ```
 
 构建命令：
 
 ```powershell
 docker build `
-  -t teslamate/grafana:4.1.0-dev-da09dc3 `
-  -t teslamate/grafana:latest `
+  -t teslamate/grafana:4.1.0-dev.120260709.2154 `
   .\grafana
+
+docker compose up -d --force-recreate grafana
 ```
+
+Dashboard JSON 通过 `grafana/Dockerfile` 复制到镜像中的 `/dashboards`、`/dashboards_internal` 或 `/dashboards_reports`，当前 Compose 没有把工作区 dashboard 目录挂载到 Grafana 容器。Provisioning 的扫描间隔为 86400 秒，因此只刷新浏览器不会加载工作区中的 JSON 修改；开发时需要重新构建镜像并重建 Grafana 容器。
 
 ### 8.3 启动与重启
 
